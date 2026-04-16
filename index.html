@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Microrbit• EFB</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --acc:#7C6EFA;--acc2:#9D93FB;--acc-d:rgba(124,110,250,0.15);
+  --ok:#22C55E;--warn:#F59E0B;--err:#EF4444;--inf:#3B82F6;
+  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;
+  --f:'Inter',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;
+  --dur:0.2s;--ease:cubic-bezier(.4,0,.2,1);
+  --sb:220px;
+}
+[data-theme=dark]{
+  --bg:#0C0C10;--s1:#111116;--s2:#18181f;--s3:#1f1f28;--s4:#28282f;
+  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.13);
+  --t1:#EEEEF5;--t2:#9898B0;--t3:#55556A;
+}
+[data-theme=light]{
+  --bg:#F0F0F6;--s1:#FFFFFF;--s2:#F5F5FC;--s3:#EBEBF5;--s4:#E0E0EE;
+  --bd:rgba(0,0,0,0.07);--bd2:rgba(0,0,0,0.13);
+  --t1:#111118;--t2:#55556A;--t3:#9898B0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f);background:var(--bg);color:var(--t1);font-size:14px;line-height:1.5}
+button,input,select,textarea{font-family:var(--f);font-size:14px}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ===== LAYOUT ===== */
+.shell{display:flex;height:100vh;overflow:hidden;position:relative}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sb);min-width:var(--sb);
+  background:var(--s1);border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;
+  height:100vh;overflow-y:auto;overflow-x:hidden;
+  transition:transform var(--dur) var(--ease),width var(--dur) var(--ease);
+  z-index:50;flex-shrink:0;
+}
+.sidebar.collapsed{width:0;min-width:0;transform:translateX(-100%)}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:block}
+}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:49;backdrop-filter:blur(2px)}
+.sidebar-overlay.show{display:block}
+
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sb-logo-row{display:flex;align-items:center;gap:10px}
+.logo-mark{width:34px;height:34px;background:var(--acc);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2}
+.logo-name{font-size:14px;font-weight:700;letter-spacing:-0.3px;color:var(--t1)}
+.logo-name span{color:var(--acc)}
+.logo-tag{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-top:1px}
+
+.sb-nav{padding:10px 8px;flex:1}
+.sb-section{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;padding:12px 8px 5px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r8);cursor:pointer;color:var(--t2);font-size:13px;font-weight:500;transition:all var(--dur) var(--ease);margin-bottom:1px;position:relative}
+.sb-item:hover{color:var(--t1);background:var(--s3)}
+.sb-item.active{color:var(--acc);background:var(--acc-d)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
+.sb-badge{margin-left:auto;font-size:11px;font-family:var(--fm);background:var(--s3);color:var(--t3);padding:1px 6px;border-radius:99px}
+.sb-item.active .sb-badge{background:var(--acc-d);color:var(--acc)}
+.sb-divider{height:1px;background:var(--bd);margin:6px 0}
+
+/* TOPBAR */
+.topbar{
+  height:54px;background:var(--s1);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  position:sticky;top:0;z-index:40;flex-shrink:0;
+}
+.burger{width:36px;height:36px;border-radius:var(--r8);border:1px solid var(--bd2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--dur)}
+.burger:hover{color:var(--t1);background:var(--s3)}
+.burger svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.top-title{font-size:15px;font-weight:600;letter-spacing:-0.3px;color:var(--t1)}
+.top-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.icon-btn{width:36px;height:36px;border-radius:var(--r8);border:1px solid var(--bd);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--dur)}
+.icon-btn:hover{color:var(--t1);background:var(--s3)}
+.icon-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.btn{padding:8px 16px;border-radius:var(--r8);font-size:13px;font-weight:600;cursor:pointer;transition:all var(--dur);border:none;display:inline-flex;align-items:center;gap:6px}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.btn-acc{background:var(--acc);color:#fff}
+.btn-acc:hover{background:var(--acc2)}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--bd2)}
+.btn-ghost:hover{color:var(--t1);background:var(--s3)}
+.btn-danger{background:rgba(239,68,68,0.1);color:var(--err);border:1px solid rgba(239,68,68,0.2)}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+@media(max-width:480px){.btn-label{display:none}}
+
+/* MAIN + PAGES */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.page-wrap{flex:1;overflow-y:auto;overflow-x:hidden}
+.page{display:none;padding:24px 20px;animation:fadeUp var(--dur) var(--ease)}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-head{margin-bottom:20px}
+.page-head h1{font-size:20px;font-weight:700;letter-spacing:-0.5px;margin-bottom:3px}
+.page-head p{font-size:13px;color:var(--t2)}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r16);padding:18px 20px;margin-bottom:14px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;letter-spacing:-0.1px}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* STAT CARDS */
+.stat-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r16);padding:18px 20px;position:relative;overflow:hidden}
+.stat-card-accent{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:0.08}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.stat-val{font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1}
+.stat-delta{font-size:12px;margin-top:6px;font-weight:500;display:flex;align-items:center;gap:4px}
+.up{color:var(--ok)}.down{color:var(--err)}.neutral{color:var(--t2)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--fm);gap:4px}
+.b-acc{background:var(--acc-d);color:var(--acc)}
+.b-ok{background:rgba(34,197,94,0.12);color:var(--ok)}
+.b-warn{background:rgba(245,158,11,0.12);color:var(--warn)}
+.b-err{background:rgba(239,68,68,0.12);color:var(--err)}
+.b-inf{background:rgba(59,130,246,0.12);color:var(--inf)}
+.b-gray{background:var(--s3);color:var(--t2)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--bd)}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--bd);color:var(--t1);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{cursor:pointer;transition:background var(--dur)}
+.tbl tbody tr:hover td{background:var(--s2)}
+.tbl td:first-child{font-weight:500}
+@media(max-width:640px){
+  .tbl-hide{display:none}
+  .tbl td,.tbl th{padding:9px 8px;font-size:12px}
+}
+
+/* BAR CHART */
+.bar-chart{display:flex;flex-direction:column;gap:9px}
+.bar-row{display:grid;grid-template-columns:90px 1fr 48px;align-items:center;gap:10px}
+.bar-lbl{font-size:12px;color:var(--t2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:16px;background:var(--s3);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width 0.8s var(--ease)}
+.bar-val{font-size:12px;font-weight:600;color:var(--t1);font-family:var(--fm)}
+@media(max-width:500px){.bar-row{grid-template-columns:70px 1fr 36px}}
+
+/* SPARKLINE */
+.spark-wrap{display:flex;align-items:flex-end;gap:4px;height:56px;margin-top:4px}
+.spark-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;cursor:pointer;transition:opacity var(--dur)}
+.spark-bar:hover{opacity:0.7}
+.spark-labels{display:flex;gap:4px;margin-top:5px}
+.spark-lbl{flex:1;font-size:9px;color:var(--t3);text-align:center;font-family:var(--fm)}
+
+/* ===== FORMS LIST ===== */
+.forms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.form-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r16);padding:18px 20px;cursor:pointer;transition:all var(--dur);position:relative}
+.form-card:hover{border-color:var(--bd2);background:var(--s2)}
+.form-card-icon{width:40px;height:40px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px;flex-shrink:0}
+.form-card-name{font-size:14px;font-weight:600;margin-bottom:3px;letter-spacing:-0.2px}
+.form-card-meta{font-size:12px;color:var(--t2);margin-bottom:12px}
+.form-card-foot{display:flex;align-items:center;justify-content:space-between}
+.form-card-actions{display:flex;gap:6px;opacity:0;transition:opacity var(--dur)}
+.form-card:hover .form-card-actions{opacity:1}
+.fc-btn{width:28px;height:28px;border-radius:var(--r8);background:var(--s3);border:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--dur)}
+.fc-btn:hover{color:var(--t1);border-color:var(--bd2)}
+.fc-btn.del:hover{color:var(--err);border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08)}
+.fc-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+@media(max-width:480px){.form-card-actions{opacity:1}}
+
+/* ===== BUILDER ===== */
+.builder-shell{display:flex;height:calc(100vh - 54px);overflow:hidden}
+.bldr-left{width:220px;min-width:220px;background:var(--s1);border-right:1px solid var(--bd);overflow-y:auto;padding:14px 10px;flex-shrink:0}
+.bldr-canvas{flex:1;overflow-y:auto;background:var(--bg);padding:24px 20px}
+.bldr-right{width:256px;min-width:256px;background:var(--s1);border-left:1px solid var(--bd);overflow-y:auto;padding:14px;flex-shrink:0}
+@media(max-width:900px){
+  .bldr-left{width:180px;min-width:180px}
+  .bldr-right{width:220px;min-width:220px}
+}
+@media(max-width:700px){
+  .bldr-left{display:none}
+  .bldr-right{display:none}
+  .bldr-mobile-bar{display:flex!important}
+}
+.bldr-mobile-bar{display:none;background:var(--s1);border-top:1px solid var(--bd);padding:10px 12px;gap:8px;overflow-x:auto;flex-shrink:0}
+.bldr-mobile-bar::-webkit-scrollbar{display:none}
+.mob-palette-item{flex-shrink:0;padding:7px 11px;border-radius:var(--r8);border:1px solid var(--bd);cursor:pointer;font-size:12px;font-weight:500;color:var(--t2);white-space:nowrap;transition:all var(--dur);background:var(--s2)}
+.mob-palette-item:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-d)}
+
+.panel-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;padding:0 4px}
+.palette-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px}
+.pal-item{padding:8px 6px;border-radius:var(--r8);border:1px solid var(--bd);cursor:pointer;transition:all var(--dur);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:var(--t2)}
+.pal-item:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-d)}
+.pal-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* CANVAS */
+.canvas-form{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r20);padding:32px 36px;max-width:660px;margin:0 auto}
+.canvas-title{font-size:20px;font-weight:700;letter-spacing:-0.5px;border:none;background:transparent;width:100%;outline:none;color:var(--t1);margin-bottom:4px}
+.canvas-desc{font-size:13px;color:var(--t2);border:none;background:transparent;width:100%;outline:none;margin-bottom:24px}
+.canvas-title:focus,.canvas-desc:focus{border-bottom:1px solid var(--acc)}
+@media(max-width:640px){.canvas-form{padding:20px 16px;border-radius:var(--r16)}}
+
+.field-block{border:1.5px dashed transparent;border-radius:var(--r12);padding:12px;margin-bottom:10px;position:relative;cursor:pointer;transition:all var(--dur)}
+.field-block:hover{border-color:var(--bd2)}
+.field-block.selected{border-color:var(--acc);background:rgba(124,110,250,0.04)}
+.field-lbl{font-size:13px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px;color:var(--t1)}
+.field-req{color:var(--err);font-size:11px}
+.field-type-tag{font-size:9px;font-family:var(--fm);color:var(--t3);background:var(--s3);padding:1px 5px;border-radius:4px;margin-left:auto;flex-shrink:0}
+.field-hint{font-size:11px;color:var(--t3);margin-bottom:6px}
+.mock-input{width:100%;padding:9px 12px;border-radius:var(--r8);border:1px solid var(--bd2);background:var(--s2);color:var(--t2);font-size:13px;font-family:var(--f)}
+.mock-textarea{resize:none;height:68px}
+.mock-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.mock-option-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);margin-bottom:5px}
+.mock-radio{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--bd2);flex-shrink:0}
+.mock-check{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--bd2);flex-shrink:0}
+.file-drop{border:1.5px dashed var(--bd2);border-radius:var(--r8);padding:18px;text-align:center;font-size:12px;color:var(--t3)}
+.sig-box{border:1.5px dashed var(--bd2);border-radius:var(--r8);height:72px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--t3)}
+.section-heading{font-size:15px;font-weight:700;color:var(--t1);padding:8px 0;border-bottom:1px solid var(--bd);margin-bottom:6px;letter-spacing:-0.2px}
+.field-controls{position:absolute;top:10px;right:10px;display:none;gap:4px}
+.field-block:hover .field-controls,.field-block.selected .field-controls{display:flex}
+.fctrl{width:24px;height:24px;border-radius:5px;background:var(--s3);border:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--dur)}
+.fctrl:hover{color:var(--t1);border-color:var(--bd2)}
+.fctrl.del:hover{color:var(--err);border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.06)}
+.fctrl svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5}
+.add-drop{border:1.5px dashed var(--bd2);border-radius:var(--r12);padding:20px;text-align:center;color:var(--t3);font-size:13px;cursor:pointer;transition:all var(--dur);margin-top:8px}
+.add-drop:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-d)}
+.add-drop svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;margin-bottom:6px}
+
+/* PROPS PANEL */
+.prop-group{margin-bottom:16px}
+.prop-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px}
+.prop-inp{width:100%;padding:7px 10px;border-radius:var(--r8);border:1px solid var(--bd2);background:var(--s2);color:var(--t1);font-size:13px;outline:none;transition:border-color var(--dur);font-family:var(--f)}
+.prop-inp:focus{border-color:var(--acc)}
+select.prop-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.toggle-row-lbl{font-size:13px;color:var(--t2)}
+.tgl{width:38px;height:22px;border-radius:99px;background:var(--s4);cursor:pointer;position:relative;transition:background var(--dur);flex-shrink:0}
+.tgl.on{background:var(--acc)}
+.tgl-knob{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left var(--dur)}
+.tgl.on .tgl-knob{left:19px}
+.opts-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.opt-row{display:flex;align-items:center;gap:6px}
+.opt-row input{flex:1;padding:5px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--s3);color:var(--t1);font-size:12px;outline:none;font-family:var(--f)}
+.opt-row input:focus{border-color:var(--acc)}
+.opt-del{width:22px;height:22px;border-radius:5px;background:transparent;border:none;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color var(--dur)}
+.opt-del:hover{color:var(--err)}
+.opt-del svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.add-opt{font-size:12px;color:var(--acc);cursor:pointer;background:none;border:none;font-family:var(--f);padding:4px 0;display:flex;align-items:center;gap:4px}
+.add-opt:hover{text-decoration:underline}
+.add-opt svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5}
+.outline-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:var(--r8);cursor:pointer;font-size:12px;color:var(--t2);transition:all var(--dur);margin-bottom:1px}
+.outline-item:hover{color:var(--t1);background:var(--s3)}
+.outline-item.active{color:var(--acc);background:var(--acc-d)}
+.outline-num{font-size:10px;color:var(--t3);font-family:var(--fm);min-width:16px}
+.no-sel{font-size:12px;color:var(--t3);text-align:center;padding:32px 16px;line-height:1.6}
+
+/* BUILDER TOOLBAR */
+.bldr-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0}
+.bldr-toolbar-title{font-size:13px;font-weight:600;margin-right:auto;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bldr-tab{padding:5px 12px;border-radius:var(--r8);font-size:12px;font-weight:500;cursor:pointer;color:var(--t2);background:transparent;border:none;transition:all var(--dur)}
+.bldr-tab:hover{color:var(--t1);background:var(--s3)}
+.bldr-tab.active{color:var(--acc);background:var(--acc-d)}
+
+/* DOWNLOAD PANEL */
+.download-panel{padding:16px;display:none}
+.download-panel.active{display:block}
+.dl-option{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r12);padding:14px;margin-bottom:10px;cursor:pointer;transition:all var(--dur);display:flex;align-items:center;gap:12px}
+.dl-option:hover{border-color:var(--acc);background:var(--acc-d)}
+.dl-icon{width:38px;height:38px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.dl-info h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.dl-info p{font-size:11px;color:var(--t2)}
+.dl-chevron{margin-left:auto;color:var(--t3)}
+.dl-chevron svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+@media(min-width:600px){.overlay{align-items:center}}
+.modal{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r20) var(--r20) 0 0;width:100%;max-width:600px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp 0.25s var(--ease)}
+@media(min-width:600px){.modal{border-radius:var(--r20);max-width:580px;animation:zoomIn 0.2s var(--ease)}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes zoomIn{from{transform:scale(0.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-hdr{padding:20px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:16px;font-weight:700;letter-spacing:-0.3px}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.close-btn{width:30px;height:30px;border-radius:var(--r8);background:var(--s3);border:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2);transition:all var(--dur)}
+.close-btn:hover{color:var(--t1)}
+.close-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* FORM INPUTS inside modals */
+.inp-group{margin-bottom:14px}
+.inp-group label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px}
+.inp-group input,.inp-group select,.inp-group textarea{width:100%;padding:9px 12px;border-radius:var(--r8);border:1px solid var(--bd2);background:var(--s2);color:var(--t1);font-size:13px;outline:none;font-family:var(--f);transition:border-color var(--dur)}
+.inp-group input:focus,.inp-group select:focus,.inp-group textarea:focus{border-color:var(--acc)}
+.inp-group select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.inp-group textarea{resize:none;height:72px}
+
+/* WIZARD STEPS */
+.step-pills{display:flex;gap:6px;margin-bottom:20px}
+.step-pill{height:4px;flex:1;border-radius:99px;background:var(--s4);transition:background 0.3s}
+.step-pill.done{background:var(--acc)}
+.step-label{font-size:11px;color:var(--t3);margin-bottom:14px}
+
+/* FORM TYPE CARDS */
+.ft-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ft-card{padding:14px;border:1.5px solid var(--bd);border-radius:var(--r12);cursor:pointer;transition:all var(--dur)}
+.ft-card:hover{border-color:var(--acc)}
+.ft-card.sel{border-color:var(--acc);background:var(--acc-d)}
+.ft-icon{font-size:22px;margin-bottom:8px}
+.ft-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.ft-desc{font-size:11px;color:var(--t2);line-height:1.4}
+
+/* TEMPLATE CARDS */
+.tmpl-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--bd);border-radius:var(--r12);cursor:pointer;transition:all var(--dur);margin-bottom:8px}
+.tmpl-card:hover{border-color:var(--acc)}
+.tmpl-card.sel{border-color:var(--acc);background:var(--acc-d)}
+.tmpl-icon{font-size:22px;flex-shrink:0}
+.tmpl-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.tmpl-desc{font-size:11px;color:var(--t2)}
+
+/* PREVIEW FORM */
+.live-field{margin-bottom:16px}
+.live-lbl{font-size:13px;font-weight:600;margin-bottom:5px;display:flex;gap:4px;color:var(--t1)}
+.live-req{color:var(--err)}
+.live-hint{font-size:11px;color:var(--t3);margin-bottom:4px}
+.live-inp{width:100%;padding:9px 12px;border-radius:var(--r8);border:1px solid var(--bd2);background:var(--s2);color:var(--t1);font-size:13px;outline:none;font-family:var(--f);transition:border-color var(--dur)}
+.live-inp:focus{border-color:var(--acc)}
+.live-select{appearance:none}
+.live-textarea{resize:vertical;min-height:80px}
+.live-radio-row,.live-check-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px;color:var(--t2);cursor:pointer}
+.live-radio-row input,.live-check-row input{accent-color:var(--acc);width:15px;height:15px;cursor:pointer}
+.live-submit{width:100%;padding:12px;border-radius:var(--r12);background:var(--acc);color:#fff;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:10px;font-family:var(--f);letter-spacing:-0.2px;transition:background var(--dur)}
+.live-submit:hover{background:var(--acc2)}
+.live-section-hdr{font-size:15px;font-weight:700;color:var(--t1);padding:10px 0 8px;border-bottom:1px solid var(--bd);margin:16px 0 12px;letter-spacing:-0.2px}
+
+/* SUCCESS */
+.success-box{text-align:center;padding:32px 20px}
+.success-icon{font-size:48px;margin-bottom:14px}
+.success-ref{font-size:22px;font-weight:700;font-family:var(--fm);color:var(--acc);background:var(--acc-d);padding:12px 24px;border-radius:var(--r12);display:inline-block;margin:12px 0;letter-spacing:1px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:999;pointer-events:none}
+.toast{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r12);padding:11px 18px;font-size:13px;display:flex;align-items:center;gap:10px;pointer-events:auto;animation:toastIn 0.22s var(--ease);box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:340px;white-space:nowrap}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* SETTINGS */
+.settings-section{margin-bottom:24px}
+.settings-section-title{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);gap:12px}
+.settings-row:last-child{border-bottom:none}
+.settings-row-info h4{font-size:13px;font-weight:500;margin-bottom:2px;color:var(--t1)}
+.settings-row-info p{font-size:12px;color:var(--t3)}
+.color-pick{width:36px;height:30px;border:1px solid var(--bd2);border-radius:var(--r8);cursor:pointer;padding:3px;background:var(--s2)}
+
+/* ANALYTICS EMPTY */
+.empty-state{text-align:center;padding:48px 20px;color:var(--t3)}
+.empty-state svg{width:48px;height:48px;stroke:currentColor;fill:none;stroke-width:1.2;margin-bottom:14px;opacity:0.4}
+.empty-state h3{font-size:15px;font-weight:600;color:var(--t2);margin-bottom:6px}
+.empty-state p{font-size:13px;line-height:1.6}
+
+/* NOTIFICATIONS panel */
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--bd)}
+.notif-item:last-child{border-bottom:none}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;margin-top:5px}
+.notif-dot.read{background:var(--s4)}
+.notif-text{font-size:13px;color:var(--t1);line-height:1.5}
+.notif-time{font-size:11px;color:var(--t3);margin-top:2px;font-family:var(--fm)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-row">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">Microrbit<span>•</span></div>
+        <div class="logo-tag">Electronic Form Builder</div>
+      </div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Workspace</div>
+    <div class="sb-item active" onclick="nav('dashboard',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="sb-item" onclick="nav('forms',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      My Forms
+      <span class="sb-badge" id="sb-forms-count">6</span>
+    </div>
+    <div class="sb-item" onclick="nav('builder',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Builder
+    </div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Analytics</div>
+    <div class="sb-item" onclick="nav('analytics',this)">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+    <div class="sb-item" onclick="nav('submissions',this)">
+      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Submissions
+      <span class="sb-badge">7</span>
+    </div>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Config</div>
+    <div class="sb-item" onclick="nav('notifications',this)">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+      <span class="sb-badge" style="background:var(--err);color:#fff">3</span>
+    </div>
+    <div class="sb-item" onclick="nav('settings',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M20 12h2M2 12h2M12 20v2M12 2v2"/></svg>
+      Settings
+    </div>
+  </div>
+</nav>
+<div class="sidebar-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar">
+  <button class="burger" onclick="toggleSidebar()" title="Toggle sidebar">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <span class="top-title" id="topbarTitle">Dashboard</span>
+  <div class="top-right">
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="icon-btn" onclick="nav('notifications')" title="Notifications" style="position:relative">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span style="position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--err);border-radius:50%;border:1.5px solid var(--s1)"></span>
+    </button>
+    <button class="btn btn-ghost" onclick="openNewForm()" style="padding:7px 12px;font-size:12px">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span class="btn-label">New Form</span>
+    </button>
+    <button class="btn btn-acc" onclick="openPreview()" style="padding:7px 12px;font-size:12px">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+  </div>
+</div>
+
+<!-- PAGES WRAPPER -->
+<div class="page-wrap">
+
+<!-- DASHBOARD -->
+<div id="pg-dashboard" class="page active">
+  <div class="page-head">
+    <h1>Welcome back 👋</h1>
+    <p>Here's what's happening with your forms today — April 15, 2026</p>
+  </div>
+  <div class="grid-4" style="margin-bottom:16px">
+    <div class="stat-card" onclick="nav('forms')" style="cursor:pointer">
+      <div class="stat-card-accent" style="background:var(--acc)"></div>
+      <div class="stat-lbl">Total Forms</div>
+      <div class="stat-val">6</div>
+      <div class="stat-delta up"><span>↑</span> 2 this month</div>
+    </div>
+    <div class="stat-card" onclick="nav('submissions')" style="cursor:pointer">
+      <div class="stat-card-accent" style="background:var(--ok)"></div>
+      <div class="stat-lbl">Submissions</div>
+      <div class="stat-val">1,247</div>
+      <div class="stat-delta up"><span>↑</span> 18% vs last month</div>
+    </div>
+    <div class="stat-card" onclick="nav('submissions')" style="cursor:pointer">
+      <div class="stat-card-accent" style="background:var(--warn)"></div>
+      <div class="stat-lbl">Pending Review</div>
+      <div class="stat-val">34</div>
+      <div class="stat-delta down"><span>↓</span> 6 since yesterday</div>
+    </div>
+    <div class="stat-card" onclick="nav('analytics')" style="cursor:pointer">
+      <div class="stat-card-accent" style="background:var(--inf)"></div>
+      <div class="stat-lbl">Completion Rate</div>
+      <div class="stat-val">91%</div>
+      <div class="stat-delta up"><span>↑</span> 3% this week</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">Recent submissions</div>
+        <span class="badge b-ok">● Live</span>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Form</th><th>Status</th><th class="tbl-hide">When</th></tr></thead>
+        <tbody id="dash-recent-body"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">Submissions by form (30 days)</div>
+      </div>
+      <div class="bar-chart" id="dash-bar-chart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Activity — last 14 days</div>
+      <span class="badge b-acc">↑ 18% avg</span>
+    </div>
+    <div class="spark-wrap" id="spark-bars"></div>
+    <div class="spark-labels" id="spark-labels"></div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="cursor:pointer" onclick="nav('forms')">
+      <div style="font-size:28px;margin-bottom:8px">📋</div>
+      <div class="card-title" style="margin-bottom:4px">Manage forms</div>
+      <div style="font-size:12px;color:var(--t2)">View, edit, and organize all your electronic forms</div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="nav('builder')">
+      <div style="font-size:28px;margin-bottom:8px">🏗️</div>
+      <div class="card-title" style="margin-bottom:4px">Open builder</div>
+      <div style="font-size:12px;color:var(--t2)">Add fields, configure logic, and design your form layout</div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="nav('analytics')">
+      <div style="font-size:28px;margin-bottom:8px">📊</div>
+      <div class="card-title" style="margin-bottom:4px">View analytics</div>
+      <div style="font-size:12px;color:var(--t2)">Submission trends, error tracking, and outcome breakdowns</div>
+    </div>
+  </div>
+</div>
+
+<!-- MY FORMS -->
+<div id="pg-forms" class="page">
+  <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div>
+      <h1>My Forms</h1>
+      <p>All your electronic forms — click to open in builder</p>
+    </div>
+    <button class="btn btn-acc" onclick="openNewForm()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Form
+    </button>
+  </div>
+  <div class="forms-grid" id="forms-grid"></div>
+</div>
+
+<!-- BUILDER -->
+<div id="pg-builder" class="page" style="padding:0;height:calc(100vh - 54px);overflow:hidden;display:none;flex-direction:column">
+  <div class="bldr-toolbar" id="bldr-toolbar">
+    <div class="bldr-toolbar-title" id="bldr-form-title">Access Request Form</div>
+    <div style="display:flex;gap:4px">
+      <button class="bldr-tab active" id="tab-fields" onclick="switchBldrTab('fields')">Fields</button>
+      <button class="bldr-tab" id="tab-outline" onclick="switchBldrTab('outline')">Structure</button>
+      <button class="bldr-tab" id="tab-download" onclick="switchBldrTab('download')">
+        <span style="display:inline-flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </span>
+      </button>
+    </div>
+    <button class="btn btn-acc" onclick="openPreview()" style="padding:6px 12px;font-size:12px;margin-left:6px">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span class="btn-label">Preview</span>
+    </button>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden">
+    <div class="bldr-left" id="bldr-left">
+      <div id="left-fields-panel">
+        <div class="panel-title">Field types</div>
+        <div class="palette-grid" id="palette-grid"></div>
+        <div class="panel-title" style="margin-top:10px">Outline</div>
+        <div id="outline-list"></div>
+      </div>
+      <div id="left-dl-panel" style="display:none">
+        <div class="panel-title">Export options</div>
+      </div>
+    </div>
+    <div class="bldr-canvas" id="bldr-canvas">
+      <div class="canvas-form">
+        <input id="form-title-inp" class="canvas-title" value="Access Request Form" oninput="updateFormMeta()">
+        <input id="form-desc-inp" class="canvas-desc" value="Use this form to request system access, folder permissions, or role changes." oninput="updateFormMeta()">
+        <div id="canvas-fields"></div>
+        <div class="add-drop" onclick="addField('text')" id="add-drop-zone">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div>Click a field type or tap here to add a text field</div>
+        </div>
+      </div>
+    </div>
+    <div class="bldr-right" id="bldr-right">
+      <div class="panel-title">Properties</div>
+      <div id="props-panel"><div class="no-sel">Select a field on the canvas to edit its properties here.</div></div>
+      <div class="download-panel" id="dl-panel">
+        <div class="panel-title">Export your form</div>
+        <div class="dl-option" onclick="downloadForm('html')">
+          <div class="dl-icon" style="background:rgba(59,130,246,0.12)">🌐</div>
+          <div class="dl-info"><h4>HTML File</h4><p>Standalone web form — host anywhere</p></div>
+          <div class="dl-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="dl-option" onclick="downloadForm('pdf')">
+          <div class="dl-icon" style="background:rgba(239,68,68,0.12)">📄</div>
+          <div class="dl-info"><h4>PDF Form</h4><p>Print-ready document with all fields</p></div>
+          <div class="dl-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="dl-option" onclick="downloadForm('json')">
+          <div class="dl-icon" style="background:rgba(34,197,94,0.12)">📦</div>
+          <div class="dl-info"><h4>JSON Schema</h4><p>Import into Power Apps or AEM Forms</p></div>
+          <div class="dl-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="dl-option" onclick="downloadForm('csv')">
+          <div class="dl-icon" style="background:rgba(245,158,11,0.12)">📊</div>
+          <div class="dl-info"><h4>CSV Template</h4><p>Field definitions for spreadsheet import</p></div>
+          <div class="dl-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="dl-option" onclick="downloadForm('markdown')">
+          <div class="dl-icon" style="background:rgba(124,110,250,0.12)">📝</div>
+          <div class="dl-info"><h4>Markdown Spec</h4><p>Documentation-ready field specification</p></div>
+          <div class="dl-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Mobile field bar -->
+  <div class="bldr-mobile-bar" id="mob-bar"></div>
+</div>
+
+<!-- ANALYTICS -->
+<div id="pg-analytics" class="page">
+  <div class="page-head"><h1>Analytics</h1><p>Submission performance, trends, and validation insights</p></div>
+  <div class="grid-4" style="margin-bottom:16px">
+    <div class="stat-card"><div class="stat-card-accent" style="background:var(--acc)"></div><div class="stat-lbl">Total</div><div class="stat-val">1,247</div><div class="stat-delta up">↑ 18%</div></div>
+    <div class="stat-card"><div class="stat-card-accent" style="background:var(--ok)"></div><div class="stat-lbl">Approved</div><div class="stat-val">1,091</div><div class="stat-delta neutral">87.5%</div></div>
+    <div class="stat-card"><div class="stat-card-accent" style="background:var(--warn)"></div><div class="stat-lbl">Avg. Time</div><div class="stat-val">4.2m</div><div class="stat-delta up">↓ 30s faster</div></div>
+    <div class="stat-card"><div class="stat-card-accent" style="background:var(--err)"></div><div class="stat-lbl">Dup. Flags</div><div class="stat-val">23</div><div class="stat-delta down">↑ 4 flagged</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Submissions by access type</div></div>
+      <div class="bar-chart">
+        <div class="bar-row"><div class="bar-lbl">SharePoint</div><div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--acc)"></div></div><div class="bar-val">487</div></div>
+        <div class="bar-row"><div class="bar-lbl">Network Folder</div><div class="bar-track"><div class="bar-fill" style="width:45%;background:var(--inf)"></div></div><div class="bar-val">289</div></div>
+        <div class="bar-row"><div class="bar-lbl">Dist. List</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--ok)"></div></div><div class="bar-val">141</div></div>
+        <div class="bar-row"><div class="bar-lbl">Other</div><div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--t3)"></div></div><div class="bar-val">64</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Request outcomes</div></div>
+      <div class="bar-chart">
+        <div class="bar-row"><div class="bar-lbl">Approved</div><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--ok)"></div></div><div class="bar-val">88%</div></div>
+        <div class="bar-row"><div class="bar-lbl">Pending</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--warn)"></div></div><div class="bar-val">8%</div></div>
+        <div class="bar-row"><div class="bar-lbl">Rejected</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:var(--err)"></div></div><div class="bar-val">4%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Top validation errors</div><button class="btn btn-ghost" onclick="downloadForm('csv')" style="padding:5px 10px;font-size:12px"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export</button></div>
+    <table class="tbl">
+      <thead><tr><th>Error type</th><th class="tbl-hide">Form</th><th>Count</th><th>Trend</th></tr></thead>
+      <tbody>
+        <tr><td>Missing end date on removal</td><td class="tbl-hide" style="color:var(--t2)">Access Request</td><td style="font-family:var(--fm)">142</td><td><span class="badge b-err">↑ High</span></td></tr>
+        <tr><td>Invalid email format</td><td class="tbl-hide" style="color:var(--t2)">Onboarding</td><td style="font-family:var(--fm)">88</td><td><span class="badge b-warn">→ Stable</span></td></tr>
+        <tr><td>Duplicate submission</td><td class="tbl-hide" style="color:var(--t2)">Access Request</td><td style="font-family:var(--fm)">23</td><td><span class="badge b-ok">↓ Low</span></td></tr>
+        <tr><td>Justification too short</td><td class="tbl-hide" style="color:var(--t2)">Role Change</td><td style="font-family:var(--fm)">61</td><td><span class="badge b-warn">→ Stable</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SUBMISSIONS -->
+<div id="pg-submissions" class="page">
+  <div class="page-head" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div><h1>Submissions</h1><p>All form submissions with status tracking</p></div>
+    <button class="btn btn-ghost" onclick="downloadForm('csv')" style="padding:7px 12px;font-size:12px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="tbl">
+      <thead><tr><th>Ref #</th><th>Form</th><th class="tbl-hide">Requestor</th><th class="tbl-hide">Type</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="sub-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="pg-notifications" class="page">
+  <div class="page-head"><h1>Notifications</h1><p>Recent alerts and activity updates</p></div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Unread (3)</div>
+      <button class="btn btn-ghost" onclick="markAllRead()" style="padding:5px 10px;font-size:12px">Mark all read</button>
+    </div>
+    <div id="notif-list"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="pg-settings" class="page">
+  <div class="page-head"><h1>Settings</h1><p>Configure your workspace and form builder preferences</p></div>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="settings-section-title">Appearance</div>
+        <div class="settings-row">
+          <div class="settings-row-info"><h4>Theme</h4><p>Toggle dark or light mode</p></div>
+          <button class="btn btn-ghost" onclick="toggleTheme()" style="padding:6px 12px;font-size:12px">Toggle</button>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><h4>Accent colour</h4><p>Primary colour for buttons and highlights</p></div>
+          <input type="color" class="color-pick" value="#7C6EFA" onchange="document.documentElement.style.setProperty('--acc',this.value)">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><h4>Border radius</h4><p>Roundness of form elements</p></div>
+          <select class="prop-inp" style="width:110px" onchange="document.documentElement.style.setProperty('--r8',this.value)">
+            <option value="4px">Sharp</option><option value="8px" selected>Default</option><option value="14px">Rounded</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title">Form Behaviour</div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Save &amp; resume drafts</h4><p>Allow users to save and return later</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Duplicate detection</h4><p>Warn on near-identical resubmissions</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>AI suggestions</h4><p>Show access level recommendations</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Printable summary</h4><p>Enable print view on confirmation</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="settings-section-title">Approval Routing</div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Auto-escalation timeout</h4><p>Hours before escalating to delegate</p></div><select class="prop-inp" style="width:110px"><option>24h</option><option selected>48h</option><option>72h</option></select></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>IT review for Owner access</h4><p>Require IT sign-off for Owner level</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Parallel approval on urgent</h4><p>Notify supervisor and IT together</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title">Notifications</div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Email on submission</h4><p>Send confirmation to requestor</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Approval reminders</h4><p>Escalate after inactivity window</p></div><div class="tgl on" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:19px"></div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>Weekly digest</h4><p>Receive a weekly summary report</p></div><div class="tgl" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:3px"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="settings-section-title">Accessibility</div>
+        <div class="settings-row"><div class="settings-row-info"><h4>WCAG level</h4><p>Minimum accessibility standard</p></div><select class="prop-inp" style="width:110px"><option selected>2.1 AA</option><option>2.1 AAA</option></select></div>
+        <div class="settings-row"><div class="settings-row-info"><h4>High contrast</h4><p>Increase contrast ratios globally</p></div><div class="tgl" onclick="this.classList.toggle('on');this.querySelector('.tgl-knob').style.left=this.classList.contains('on')?'19px':'3px'"><div class="tgl-knob" style="left:3px"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end page-wrap -->
+</div><!-- end main -->
+</div><!-- end shell -->
+
+<!-- NEW FORM MODAL -->
+<div class="overlay" id="new-form-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Create new form</div>
+      <button class="close-btn" onclick="closeModal('new-form-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="step-pills"><div class="step-pill done" id="sp1"></div><div class="step-pill" id="sp2"></div><div class="step-pill" id="sp3"></div></div>
+      <div class="step-label" id="step-label">Step 1 of 3 — Choose platform</div>
+      <div id="create-s1">
+        <div class="ft-grid">
+          <div class="ft-card sel" id="ft-web" onclick="selFT('web')"><div class="ft-icon">🌐</div><div class="ft-name">Web Form</div><div class="ft-desc">Custom HTML — host anywhere, maximum control</div></div>
+          <div class="ft-card" id="ft-powerapp" onclick="selFT('powerapp')"><div class="ft-icon">⚡</div><div class="ft-name">Power Apps</div><div class="ft-desc">M365 integration with SharePoint & Dataverse</div></div>
+          <div class="ft-card" id="ft-msforms" onclick="selFT('msforms')"><div class="ft-icon">📋</div><div class="ft-name">Microsoft Forms</div><div class="ft-desc">Quick surveys with Power Automate routing</div></div>
+          <div class="ft-card" id="ft-aem" onclick="selFT('aem')"><div class="ft-icon">🏛️</div><div class="ft-name">AEM Forms</div><div class="ft-desc">Enterprise PDF &amp; adaptive forms with DocuSign</div></div>
+        </div>
+      </div>
+      <div id="create-s2" style="display:none">
+        <div class="inp-group"><label>Form name *</label><input id="nf-name" type="text" placeholder="e.g. IT Access Request"></div>
+        <div class="inp-group"><label>Description</label><textarea id="nf-desc" placeholder="Brief purpose of this form"></textarea></div>
+        <div class="inp-group"><label>Category</label><select id="nf-cat"><option>Access Management</option><option>HR &amp; Onboarding</option><option>IT Operations</option><option>Compliance</option><option>General</option></select></div>
+      </div>
+      <div id="create-s3" style="display:none">
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">Start with a template?</div>
+        <div class="tmpl-card sel" id="tmpl-blank" onclick="selTmpl('blank')"><div class="tmpl-icon">✦</div><div><div class="tmpl-name">Blank form</div><div class="tmpl-desc">Start from scratch with an empty canvas</div></div></div>
+        <div class="tmpl-card" id="tmpl-access" onclick="selTmpl('access')"><div class="tmpl-icon">🔑</div><div><div class="tmpl-name">Access request</div><div class="tmpl-desc">Pre-built with requestor info, access type, justification, approver</div></div></div>
+        <div class="tmpl-card" id="tmpl-onboard" onclick="selTmpl('onboard')"><div class="tmpl-icon">👤</div><div><div class="tmpl-name">Employee onboarding</div><div class="tmpl-desc">New hire setup with system access and equipment requests</div></div></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="nf-back" onclick="nfStep(-1)" style="display:none">← Back</button>
+      <button class="btn btn-ghost" onclick="closeModal('new-form-modal')">Cancel</button>
+      <button class="btn btn-acc" id="nf-next" onclick="nfStep(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="overlay" id="preview-modal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="preview-modal-title">Form preview</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="badge b-acc">Live</span>
+        <button class="close-btn" onclick="closeModal('preview-modal')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div class="modal-body" id="preview-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('preview-modal')">Close</button>
+      <button class="btn btn-ghost" onclick="switchBldrTab('download');closeModal('preview-modal');nav('builder')" style="gap:6px">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ===== STATE =====
+var theme='dark';
+var fields=[];
+var selFieldId=null;
+var selFTType='web';
+var selTmplType='blank';
+var nfStepNum=1;
+var formMeta={title:'Access Request Form',desc:'Use this form to request system access, folder permissions, or role changes.'};
+
+var FORMS=[
+  {id:1,name:'Access Request Form',type:'Web Form',icon:'🔑',bg:'rgba(124,110,250,0.12)',subs:487,status:'active'},
+  {id:2,name:'IT Onboarding Checklist',type:'Power Apps',icon:'👤',bg:'rgba(59,130,246,0.12)',subs:341,status:'active'},
+  {id:3,name:'Network Folder Request',type:'Web Form',icon:'📁',bg:'rgba(34,197,94,0.12)',subs:224,status:'active'},
+  {id:4,name:'Role Change Request',type:'Microsoft Forms',icon:'🔄',bg:'rgba(245,158,11,0.12)',subs:129,status:'draft'},
+  {id:5,name:'Termination Offboarding',type:'AEM Forms',icon:'🚪',bg:'rgba(239,68,68,0.12)',subs:66,status:'active'},
+  {id:6,name:'Dist. List Request',type:'Web Form',icon:'📧',bg:'rgba(124,110,250,0.12)',subs:0,status:'draft'}
+];
+
+var SUBMISSIONS=[
+  {ref:'REF-2025-0412',form:'Access Request',who:'J. Lee',type:'SharePoint',date:'Today 09:14',status:'approved'},
+  {ref:'REF-2025-0411',form:'IT Onboarding',who:'M. Chen',type:'Onboarding',date:'Today 08:52',status:'pending'},
+  {ref:'REF-2025-0410',form:'Folder Request',who:'A. Patel',type:'Network Folder',date:'Yesterday',status:'approved'},
+  {ref:'REF-2025-0409',form:'Role Change',who:'S. Brown',type:'Role Change',date:'Apr 14',status:'review'},
+  {ref:'REF-2025-0408',form:'Access Request',who:'D. Kim',type:'SharePoint',date:'Apr 14',status:'approved'},
+  {ref:'REF-2025-0407',form:'Termination',who:'HR Admin',type:'Offboarding',date:'Apr 13',status:'approved'},
+  {ref:'REF-2025-0406',form:'Access Request',who:'L. Torres',type:'Dist. List',date:'Apr 12',status:'rejected'}
+];
+
+var NOTIFS=[
+  {text:'New submission REF-2025-0412 requires supervisor approval for Owner-level SharePoint access.',time:'2 min ago',read:false},
+  {text:'Auto-escalation triggered for REF-2025-0409 — no approval action in 48 hours.',time:'3 hr ago',read:false},
+  {text:'Duplicate submission detected for REF-2025-0411 — same requestor and resource as REF-2025-0398.',time:'Yesterday',read:false},
+  {text:'REF-2025-0405 was approved and fulfilled by IT provisioning.',time:'2 days ago',read:true},
+  {text:'Weekly analytics digest: 247 submissions, 91% completion rate.',time:'Apr 13',read:true}
+];
+
+var TEMPLATES={
+  access:[
+    {id:'a1',type:'text',label:'Full name',required:true,hint:'Your legal full name',opts:[]},
+    {id:'a2',type:'email',label:'Work email',required:true,hint:'Must be your organization email',opts:[]},
+    {id:'a3',type:'dropdown',label:'Request type',required:true,hint:'',opts:['Grant access','Change role','Remove access']},
+    {id:'a4',type:'radio',label:'Access for',required:true,hint:'',opts:['Myself','Another employee']},
+    {id:'a5',type:'dropdown',label:'Access level',required:true,hint:'',opts:['Read','Contribute','Owner','Member','Remove']},
+    {id:'a6',type:'textarea',label:'Business justification',required:true,hint:'Minimum 20 characters — describe the business need',opts:[]},
+    {id:'a7',type:'date',label:'Access start date',required:true,hint:'YYYY-MM-DD format',opts:[]},
+    {id:'a8',type:'date',label:'Access end date',required:false,hint:'Required for removals or temporary access',opts:[]},
+    {id:'a9',type:'file',label:'Supporting documents',required:false,hint:'PDF, DOCX, PNG — max 10 MB each',opts:[]},
+    {id:'a10',type:'text',label:'Supervisor name',required:true,hint:'Your direct supervisor',opts:[]},
+    {id:'a11',type:'email',label:'Supervisor email',required:true,hint:'Must differ from your own email',opts:[]},
+    {id:'a12',type:'checkbox',label:'Attestation',required:true,hint:'',opts:['I confirm this request is for legitimate business use']}
+  ],
+  onboard:[
+    {id:'b1',type:'text',label:'Employee name',required:true,hint:'',opts:[]},
+    {id:'b2',type:'date',label:'Start date',required:true,hint:'',opts:[]},
+    {id:'b3',type:'dropdown',label:'Department',required:true,hint:'',opts:['IT','HR','Finance','Operations','Legal']},
+    {id:'b4',type:'dropdown',label:'Job title',required:true,hint:'',opts:['Analyst','Manager','Director','Coordinator','Developer']},
+    {id:'b5',type:'checkbox',label:'Systems required',required:false,hint:'',opts:['Email','SharePoint','VPN','ERP System','HR Portal']},
+    {id:'b6',type:'textarea',label:'Special requirements',required:false,hint:'Any additional access or equipment needs',opts:[]}
+  ]
+};
+
+var PALETTE=[
+  {type:'text',label:'Text',icon:'<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/>'},
+  {type:'email',label:'Email',icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
+  {type:'number',label:'Number',icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+  {type:'date',label:'Date',icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
+  {type:'dropdown',label:'Select',icon:'<path d="M6 9l6 6 6-6"/>'},
+  {type:'radio',label:'Radio',icon:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>'},
+  {type:'checkbox',label:'Check',icon:'<polyline points="20 6 9 17 4 12"/>'},
+  {type:'textarea',label:'Long text',icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 10h8M8 14h4"/>'},
+  {type:'file',label:'Upload',icon:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>'},
+  {type:'phone',label:'Phone',icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18"/>'},
+  {type:'heading',label:'Section',icon:'<path d="M4 6h16M4 12h16M4 18h7"/>'},
+  {type:'signature',label:'Signature',icon:'<path d="M3 17c3-3 4-6 6-6 3 0 3 6 6 6 2 0 3-2 3-4"/>'}
+];
+
+// ===== SIDEBAR =====
+var sbOpen=true;
+function toggleSidebar(){
+  var sb=document.getElementById('sidebar');
+  var ov=document.getElementById('sbOverlay');
+  var isMob=window.innerWidth<=768;
+  if(isMob){
+    var isOpen=sb.classList.contains('open');
+    sb.classList.toggle('open',!isOpen);
+    ov.classList.toggle('show',!isOpen);
+  } else {
+    sbOpen=!sbOpen;
+    sb.classList.toggle('collapsed',!sbOpen);
+  }
+}
+function closeSidebar(){
+  var sb=document.getElementById('sidebar');
+  var ov=document.getElementById('sbOverlay');
+  sb.classList.remove('open');
+  ov.classList.remove('show');
+}
+
+// ===== NAVIGATION =====
+var currentPage='dashboard';
+function nav(page,el){
+  if(currentPage===page&&page!=='builder')return;
+  currentPage=page;
+  document.querySelectorAll('.page').forEach(function(p){p.style.display='none';p.classList.remove('active')});
+  document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active')});
+  document.querySelectorAll('.tnav-btn').forEach(function(b){b.classList.remove('active')});
+
+  var pg=document.getElementById('pg-'+page);
+  if(pg){
+    if(page==='builder'){pg.style.display='flex'}
+    else{pg.style.display='block'}
+    pg.classList.add('active');
+  }
+  if(el)el.classList.add('active');
+
+  var titles={dashboard:'Dashboard',forms:'My Forms',builder:'Form Builder',analytics:'Analytics',submissions:'Submissions',notifications:'Notifications',settings:'Settings'};
+  document.getElementById('topbarTitle').textContent=titles[page]||page;
+
+  if(window.innerWidth<=768)closeSidebar();
+}
+
+// ===== THEME =====
+function toggleTheme(){
+  theme=theme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  var btn=document.getElementById('themeBtn');
+  if(theme==='light'){
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  } else {
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  }
+}
+
+// ===== MODALS =====
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+// ===== TOAST =====
+function toast(msg,type){
+  var colors={ok:'#22C55E',err:'#EF4444',acc:'#7C6EFA',warn:'#F59E0B'};
+  var t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML='<div class="toast-dot" style="background:'+( colors[type||'acc'])+'"></div><span>'+msg+'</span>';
+  document.getElementById('toast-wrap').appendChild(t);
+  setTimeout(function(){t.style.transition='opacity 0.3s,transform 0.3s';t.style.opacity='0';t.style.transform='translateY(8px)';setTimeout(function(){t.remove()},300)},3000);
+}
+
+// ===== DASHBOARD RENDER =====
+function renderDash(){
+  var recent=SUBMISSIONS.slice(0,5);
+  var statusMap={approved:'b-ok',pending:'b-warn',review:'b-inf',rejected:'b-err'};
+  document.getElementById('dash-recent-body').innerHTML=recent.map(function(s){
+    return '<tr onclick="nav(\'submissions\')"><td>'+s.form+'</td><td><span class="badge '+statusMap[s.status]+'">'+s.status+'</span></td><td class="tbl-hide" style="color:var(--t2)">'+s.date+'</td></tr>';
+  }).join('');
+
+  var bars=[{lbl:'Access Req.',val:487,pct:100,color:'var(--acc)'},{lbl:'Onboarding',val:341,pct:70,color:'var(--inf)'},{lbl:'Folder Perm.',val:224,pct:46,color:'var(--ok)'},{lbl:'Role Change',val:129,pct:27,color:'var(--warn)'},{lbl:'Termination',val:66,pct:14,color:'var(--err)'}];
+  document.getElementById('dash-bar-chart').innerHTML=bars.map(function(b){
+    return '<div class="bar-row"><div class="bar-lbl">'+b.lbl+'</div><div class="bar-track"><div class="bar-fill" style="width:'+b.pct+'%;background:'+b.color+'"></div></div><div class="bar-val">'+b.val+'</div></div>';
+  }).join('');
+
+  var vals=[42,58,37,71,63,88,55,94,72,101,86,78,95,110];
+  var max=Math.max.apply(null,vals);
+  var colors=['var(--acc)','var(--inf)','var(--ok)','var(--warn)'];
+  document.getElementById('spark-bars').innerHTML=vals.map(function(v,i){
+    return '<div class="spark-bar" style="height:'+Math.round(v/max*100)+'%;background:'+colors[i%colors.length]+';opacity:0.75" title="'+v+' submissions"></div>';
+  }).join('');
+  document.getElementById('spark-labels').innerHTML=vals.map(function(v,i){return '<div class="spark-lbl">'+(i+1)+'</div>'}).join('');
+}
+
+// ===== FORMS LIST =====
+function renderForms(){
+  var grid=document.getElementById('forms-grid');
+  grid.innerHTML=FORMS.map(function(f){
+    var statusBadge=f.status==='active'?'<span class="badge b-ok">Active</span>':'<span class="badge b-gray">Draft</span>';
+    return '<div class="form-card" onclick="openInBuilder('+f.id+')">'+
+      '<div class="form-card-icon" style="background:'+f.bg+'">'+f.icon+'</div>'+
+      '<div class="form-card-name">'+f.name+'</div>'+
+      '<div class="form-card-meta">'+f.type+' · '+f.subs.toLocaleString()+' submissions</div>'+
+      '<div class="form-card-foot">'+statusBadge+
+        '<div class="form-card-actions">'+
+          '<div class="fc-btn" onclick="event.stopPropagation();openPreview()" title="Preview"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>'+
+          '<div class="fc-btn" onclick="event.stopPropagation();switchBldrTab(\'download\');openInBuilder('+f.id+')" title="Export"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>'+
+          '<div class="fc-btn del" onclick="event.stopPropagation();deleteForm('+f.id+')" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('sb-forms-count').textContent=FORMS.length;
+}
+
+function deleteForm(id){
+  FORMS=FORMS.filter(function(f){return f.id!==id});
+  renderForms();
+  toast('Form deleted','err');
+}
+
+function openInBuilder(id){
+  var f=FORMS.find(function(x){return x.id===id});
+  if(f){
+    document.getElementById('form-title-inp').value=f.name;
+    formMeta.title=f.name;
+    document.getElementById('bldr-form-title').textContent=f.name;
+    nav('builder');
+    toast('Opened: '+f.name,'acc');
+  }
+}
+
+// ===== SUBMISSIONS =====
+function renderSubs(){
+  var statusMap={approved:'b-ok',pending:'b-warn',review:'b-inf',rejected:'b-err'};
+  document.getElementById('sub-body').innerHTML=SUBMISSIONS.map(function(s){
+    return '<tr><td style="font-family:var(--fm);font-size:11px">'+s.ref+'</td><td>'+s.form+'</td><td class="tbl-hide" style="color:var(--t2)">'+s.who+'</td><td class="tbl-hide"><span class="badge b-acc">'+s.type+'</span></td><td style="color:var(--t2)">'+s.date+'</td><td><span class="badge '+statusMap[s.status]+'">'+s.status+'</span></td></tr>';
+  }).join('');
+}
+
+// ===== NOTIFICATIONS =====
+function renderNotifs(){
+  document.getElementById('notif-list').innerHTML=NOTIFS.map(function(n,i){
+    return '<div class="notif-item" id="notif-'+i+'"><div class="notif-dot'+(n.read?' read':'')+'"></div><div><div class="notif-text">'+n.text+'</div><div class="notif-time">'+n.time+'</div></div></div>';
+  }).join('');
+}
+function markAllRead(){
+  NOTIFS.forEach(function(n){n.read=true});
+  renderNotifs();
+  toast('All notifications marked as read','ok');
+}
+
+// ===== BUILDER PALETTE =====
+function buildPalette(){
+  var pg=document.getElementById('palette-grid');
+  var mb=document.getElementById('mob-bar');
+  pg.innerHTML=PALETTE.map(function(p){
+    return '<div class="pal-item" onclick="addField(\''+p.type+'\')">'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15">'+p.icon+'</svg>'+
+      p.label+'</div>';
+  }).join('');
+  mb.innerHTML=PALETTE.map(function(p){
+    return '<div class="mob-palette-item" onclick="addField(\''+p.type+'\')">'+p.label+'</div>';
+  }).join('');
+}
+
+// ===== BUILDER TABS =====
+var bldrTab='fields';
+function switchBldrTab(tab){
+  bldrTab=tab;
+  ['fields','outline','download'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  var pp=document.getElementById('props-panel');
+  var dp=document.getElementById('dl-panel');
+  var lf=document.getElementById('left-fields-panel');
+  var ld=document.getElementById('left-dl-panel');
+  if(tab==='download'){
+    pp.style.display='none';dp.style.display='block';
+    lf.style.display='none';ld.style.display='block';
+    renderDlLeft();
+  } else {
+    pp.style.display='block';dp.style.display='none';
+    lf.style.display='block';ld.style.display='none';
+    if(tab==='outline'){renderOutline();}
+  }
+}
+
+function renderDlLeft(){
+  document.getElementById('left-dl-panel').innerHTML='<div class="panel-title">Export formats</div>'+
+    ['HTML Form','PDF Document','JSON Schema','CSV Template','Markdown Spec'].map(function(n,i){
+      var types=['html','pdf','json','csv','markdown'];
+      return '<div class="outline-item" onclick="downloadForm(\''+types[i]+'\')" style="gap:8px">'+
+        '<span style="font-size:14px">'+['🌐','📄','📦','📊','📝'][i]+'</span>'+
+        '<span>'+n+'</span></div>';
+    }).join('');
+}
+
+// ===== ADD FIELD =====
+function addField(type){
+  var id='f_'+Date.now();
+  var defs={
+    text:{label:'Text field',hint:'Enter your answer',opts:[]},
+    email:{label:'Email address',hint:'Enter a valid email',opts:[]},
+    number:{label:'Number',hint:'',opts:[]},
+    date:{label:'Date',hint:'YYYY-MM-DD',opts:[]},
+    dropdown:{label:'Dropdown',hint:'',opts:['Option 1','Option 2','Option 3']},
+    radio:{label:'Radio group',hint:'',opts:['Option A','Option B','Option C']},
+    checkbox:{label:'Checkbox group',hint:'',opts:['Choice 1','Choice 2']},
+    textarea:{label:'Long text',hint:'Provide detailed information',opts:[]},
+    file:{label:'File upload',hint:'PDF, DOCX, PNG — max 10 MB',opts:[]},
+    phone:{label:'Phone number',hint:'',opts:[]},
+    heading:{label:'Section heading',hint:'Group related fields below',opts:[]},
+    signature:{label:'Signature',hint:'Sign in the box below',opts:[]}
+  };
+  var d=defs[type]||{label:type,hint:'',opts:[]};
+  fields.push({id:id,type:type,label:d.label,hint:d.hint,required:false,opts:d.opts.slice()});
+  renderCanvas();
+  selField(id);
+  document.getElementById('add-drop-zone').style.display=fields.length>0?'none':'block';
+  toast('Added '+type+' field','acc');
+}
+
+function removeField(id){
+  fields=fields.filter(function(f){return f.id!==id});
+  if(selFieldId===id)selFieldId=null;
+  renderCanvas();
+  renderProps();
+  document.getElementById('add-drop-zone').style.display=fields.length>0?'none':'block';
+}
+
+function moveField(id,dir){
+  var idx=fields.findIndex(function(f){return f.id===id});
+  var ni=idx+dir;
+  if(ni<0||ni>=fields.length)return;
+  var tmp=fields[idx];fields[idx]=fields[ni];fields[ni]=tmp;
+  renderCanvas();selField(id);
+}
+
+function selField(id){
+  selFieldId=id;
+  document.querySelectorAll('.field-block').forEach(function(b){b.classList.toggle('selected',b.dataset.id===id)});
+  renderProps();
+}
+
+// ===== CANVAS RENDER =====
+function renderCanvas(){
+  var html=fields.map(function(f,i){
+    var body='';
+    if(f.type==='heading'){
+      body='<div class="section-heading">'+f.label+'</div>';
+      if(f.hint)body+='<div style="font-size:12px;color:var(--t3);margin-top:-4px">'+f.hint+'</div>';
+    } else {
+      body='<div class="field-lbl">'+f.label+(f.required?'<span class="field-req">*</span>':'')+
+        '<span class="field-type-tag">'+f.type+'</span></div>';
+      if(f.hint)body+='<div class="field-hint">'+f.hint+'</div>';
+      body+=renderMockInput(f);
+    }
+    return '<div class="field-block" data-id="'+f.id+'" onclick="selField(\''+f.id+'\')">'
+      +body
+      +'<div class="field-controls">'
+      +'<div class="fctrl" onclick="event.stopPropagation();moveField(\''+f.id+'\',-1)" title="Up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></div>'
+      +'<div class="fctrl" onclick="event.stopPropagation();moveField(\''+f.id+'\',1)" title="Down"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>'
+      +'<div class="fctrl del" onclick="event.stopPropagation();removeField(\''+f.id+'\')" title="Remove"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>'
+      +'</div></div>';
+  }).join('');
+  document.getElementById('canvas-fields').innerHTML=html;
+  if(selFieldId){
+    var el=document.querySelector('[data-id="'+selFieldId+'"]');
+    if(el)el.classList.add('selected');
+  }
+  renderOutline();
+  document.getElementById('add-drop-zone').style.display=fields.length>0?'none':'flex';
+}
+
+function renderMockInput(f){
+  var t=f.type;
+  if(t==='text'||t==='email'||t==='number'||t==='phone')
+    return '<input disabled class="mock-input" placeholder="'+(f.hint||'...')+'">';
+  if(t==='date')return '<input disabled class="mock-input" type="date">';
+  if(t==='textarea')return '<textarea disabled class="mock-input mock-textarea" placeholder="'+(f.hint||'')+'"></textarea>';
+  if(t==='file')return '<div class="file-drop"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--t3);fill:none;stroke-width:1.5;margin-bottom:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><br>'+(f.hint||'Drag & drop or click to upload')+'</div>';
+  if(t==='signature')return '<div class="sig-box">✍ Draw signature here</div>';
+  if(t==='dropdown')return '<select disabled class="mock-input mock-select"><option>Select...</option>'+f.opts.map(function(o){return '<option>'+o+'</option>'}).join('')+'</select>';
+  if(t==='radio')return '<div>'+f.opts.map(function(o){return '<div class="mock-option-row"><div class="mock-radio"></div>'+o+'</div>'}).join('')+'</div>';
+  if(t==='checkbox')return '<div>'+f.opts.map(function(o){return '<div class="mock-option-row"><div class="mock-check"></div>'+o+'</div>'}).join('')+'</div>';
+  return '<input disabled class="mock-input" placeholder="...">';
+}
+
+function renderOutline(){
+  var ol=document.getElementById('outline-list');
+  if(!ol)return;
+  ol.innerHTML=fields.length?fields.map(function(f,i){
+    return '<div class="outline-item'+(selFieldId===f.id?' active':'')+'" onclick="selField(\''+f.id+'\')">'
+      +'<span class="outline-num">'+(i+1)+'</span>'
+      +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+f.label+'</span>'
+      +'</div>';
+  }).join(''):'<div style="font-size:12px;color:var(--t3);padding:8px 4px">No fields yet</div>';
+}
+
+// ===== PROPS PANEL =====
+function renderProps(){
+  var panel=document.getElementById('props-panel');
+  var f=fields.find(function(x){return x.id===selFieldId});
+  if(!f){panel.innerHTML='<div class="no-sel">Select a field to edit its properties here.</div>';return;}
+
+  var optsSec='';
+  if(['dropdown','radio','checkbox'].indexOf(f.type)>-1){
+    optsSec='<div class="prop-group"><div class="prop-lbl">Options</div>'
+      +'<div class="opts-list" id="opts-'+f.id+'">'+f.opts.map(function(o,i){
+        return '<div class="opt-row"><input value="'+o+'" oninput="updOpt(\''+f.id+'\','+i+',this.value)">'
+          +'<button class="opt-del" onclick="delOpt(\''+f.id+'\','+i+')" '+(f.opts.length<=1?'disabled':'')+'>'+
+          '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+      }).join('')+'</div>'
+      +'<button class="add-opt" onclick="addOpt(\''+f.id+'\')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add option</button>'
+      +'</div>';
+  }
+  panel.innerHTML=
+    '<div class="prop-group"><div class="prop-lbl">Label</div><input class="prop-inp" value="'+f.label+'" oninput="updFld(\''+f.id+'\',\'label\',this.value)"></div>'
+    +'<div class="prop-group"><div class="prop-lbl">Hint text</div><input class="prop-inp" value="'+(f.hint||'')+'" oninput="updFld(\''+f.id+'\',\'hint\',this.value)" placeholder="Helper text shown below label"></div>'
+    +(f.type!=='heading'
+      ?'<div class="prop-group"><div class="prop-lbl">Validation</div><div class="toggle-row"><span class="toggle-row-lbl">Required field</span><div class="tgl'+(f.required?' on':'')+'" onclick="tglReq(\''+f.id+'\')"><div class="tgl-knob" style="left:'+(f.required?'19px':'3px')+'"></div></div></div></div>'
+      :'')
+    +optsSec
+    +'<div style="margin-top:18px"><button class="btn btn-danger" style="width:100%" onclick="removeField(\''+f.id+'\')">Remove field</button></div>';
+}
+
+function updFld(id,prop,val){
+  var f=fields.find(function(x){return x.id===id});
+  if(f){f[prop]=val;renderCanvas();if(selFieldId===id){var el=document.querySelector('[data-id="'+id+'"]');if(el)el.classList.add('selected')}}
+}
+function tglReq(id){var f=fields.find(function(x){return x.id===id});if(f){f.required=!f.required;renderCanvas();renderProps()}}
+function addOpt(id){var f=fields.find(function(x){return x.id===id});if(f){f.opts.push('Option '+(f.opts.length+1));renderCanvas();renderProps()}}
+function delOpt(id,i){var f=fields.find(function(x){return x.id===id});if(f&&f.opts.length>1){f.opts.splice(i,1);renderCanvas();renderProps()}}
+function updOpt(id,i,val){var f=fields.find(function(x){return x.id===id});if(f)f.opts[i]=val}
+
+function updateFormMeta(){
+  formMeta.title=document.getElementById('form-title-inp').value;
+  formMeta.desc=document.getElementById('form-desc-inp').value;
+  document.getElementById('bldr-form-title').textContent=formMeta.title;
+}
+
+// ===== PREVIEW =====
+function openPreview(){
+  document.getElementById('preview-modal-title').textContent=formMeta.title||'Form preview';
+  var html='<div style="font-size:19px;font-weight:700;letter-spacing:-0.4px;margin-bottom:4px;color:var(--t1)">'+formMeta.title+'</div>'
+    +'<div style="font-size:13px;color:var(--t2);margin-bottom:22px">'+formMeta.desc+'</div>';
+  if(!fields.length){
+    html+='<div style="text-align:center;padding:40px;color:var(--t3)">No fields yet — go to the Builder to add fields.</div>';
+  } else {
+    fields.forEach(function(f){
+      if(f.type==='heading'){
+        html+='<div class="live-section-hdr">'+f.label+'</div>';return;
+      }
+      html+='<div class="live-field"><div class="live-lbl">'+f.label+(f.required?'<span class="live-req">*</span>':'')+'</div>';
+      if(f.hint)html+='<div class="live-hint">'+f.hint+'</div>';
+      var t=f.type;
+      if(t==='text'||t==='phone')html+='<input class="live-inp" type="text" placeholder="'+(f.hint||'')+'">';
+      else if(t==='email')html+='<input class="live-inp" type="email" placeholder="you@example.com">';
+      else if(t==='number')html+='<input class="live-inp" type="number">';
+      else if(t==='date')html+='<input class="live-inp" type="date">';
+      else if(t==='textarea')html+='<textarea class="live-inp live-textarea" placeholder="'+(f.hint||'')+'"></textarea>';
+      else if(t==='file')html+='<div style="border:1.5px dashed var(--bd2);border-radius:var(--r8);padding:22px;text-align:center;cursor:pointer;color:var(--t3);font-size:13px">Click to upload or drag &amp; drop<br><span style="font-size:11px">'+(f.hint||'')+'</span></div>';
+      else if(t==='signature')html+='<div style="border:1.5px dashed var(--bd2);border-radius:var(--r8);height:90px;display:flex;align-items:center;justify-content:center;cursor:crosshair;color:var(--t3);font-size:13px">Draw your signature here</div>';
+      else if(t==='dropdown')html+='<select class="live-inp live-select"><option value="">Select...</option>'+f.opts.map(function(o){return '<option>'+o+'</option>'}).join('')+'</select>';
+      else if(t==='radio')html+=f.opts.map(function(o){return '<label class="live-radio-row"><input type="radio" name="'+f.id+'"> '+o+'</label>'}).join('');
+      else if(t==='checkbox')html+=f.opts.map(function(o){return '<label class="live-check-row"><input type="checkbox"> '+o+'</label>'}).join('');
+      html+='</div>';
+    });
+    html+='<button class="live-submit" onclick="handleSubmit()">Submit Request</button>';
+  }
+  document.getElementById('preview-body').innerHTML=html;
+  openModal('preview-modal');
+}
+
+function handleSubmit(){
+  var ref='REF-2026-'+Math.floor(Math.random()*9000+1000);
+  document.getElementById('preview-body').innerHTML=
+    '<div class="success-box">'+
+    '<div class="success-icon">✅</div>'+
+    '<div style="font-size:19px;font-weight:700;margin-bottom:6px;color:var(--t1)">Submission received</div>'+
+    '<div style="font-size:13px;color:var(--t2);margin-bottom:16px">Your reference number:</div>'+
+    '<div class="success-ref">'+ref+'</div>'+
+    '<div style="font-size:12px;color:var(--t3);margin-top:14px">A confirmation has been sent. Average approval time: 1.4 business days.</div>'+
+    '</div>';
+  toast('Submitted! Ref: '+ref,'ok');
+}
+
+// ===== DOWNLOAD =====
+function downloadForm(format){
+  var name=formMeta.title.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  if(format==='html'){
+    var content='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+formMeta.title+'</title>'
+      +'<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:40px auto;padding:20px;background:#f5f5f5}'
+      +'.form-wrap{background:#fff;padding:32px;border-radius:12px;border:1px solid #e0e0e0}'
+      +'h1{font-size:22px;font-weight:700;margin-bottom:8px}p{color:#666;margin-bottom:24px;font-size:14px}'
+      +'.field{margin-bottom:18px}label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}'
+      +'.hint{font-size:11px;color:#999;margin-bottom:5px}input,select,textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}'
+      +'textarea{resize:vertical;min-height:80px}button{width:100%;padding:12px;background:#7C6EFA;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}</style></head>'
+      +'<body><div class="form-wrap"><h1>'+formMeta.title+'</h1><p>'+formMeta.desc+'</p>';
+    fields.forEach(function(f){
+      if(f.type==='heading'){content+='<h2 style="font-size:16px;border-bottom:1px solid #eee;padding-bottom:8px;margin:20px 0 14px">'+f.label+'</h2>';return;}
+      content+='<div class="field"><label>'+f.label+(f.required?' *':'')+'</label>';
+      if(f.hint)content+='<div class="hint">'+f.hint+'</div>';
+      var t=f.type;
+      if(t==='textarea')content+='<textarea name="'+f.id+'" '+(f.required?'required':'')+' placeholder="'+f.hint+'"></textarea>';
+      else if(t==='dropdown')content+='<select name="'+f.id+'" '+(f.required?'required':'')+'><option value="">Select...</option>'+f.opts.map(function(o){return '<option>'+o+'</option>'}).join('')+'</select>';
+      else if(t==='radio')content+=f.opts.map(function(o){return '<label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-bottom:4px"><input type="radio" name="'+f.id+'"> '+o+'</label>'}).join('');
+      else if(t==='checkbox')content+=f.opts.map(function(o){return '<label style="display:flex;align-items:center;gap:8px;font-weight:400;margin-bottom:4px"><input type="checkbox" name="'+f.id+'"> '+o+'</label>'}).join('');
+      else if(t==='file')content+='<input type="file" name="'+f.id+'" '+(f.required?'required':'')+'>';
+      else content+='<input type="'+t+'" name="'+f.id+'" placeholder="'+f.hint+'" '+(f.required?'required':'')+' >';
+      content+='</div>';
+    });
+    content+='<button type="submit">Submit Request</button></div></body></html>';
+    dl(name+'.html',content,'text/html');
+  } else if(format==='json'){
+    var schema={formId:'form_'+Date.now(),title:formMeta.title,description:formMeta.desc,version:'1.0',platform:'EFB',fields:fields.map(function(f){return {id:f.id,type:f.type,label:f.label,hint:f.hint,required:f.required,options:f.opts}})};
+    dl(name+'.json',JSON.stringify(schema,null,2),'application/json');
+  } else if(format==='csv'){
+    var rows=['id,type,label,hint,required,options'];
+    fields.forEach(function(f){rows.push([f.id,f.type,'"'+f.label+'"','"'+f.hint+'"',f.required,'"'+f.opts.join('|')+'"'].join(','))});
+    dl(name+'_fields.csv',rows.join('\n'),'text/csv');
+  } else if(format==='markdown'){
+    var md='# '+formMeta.title+'\n\n'+formMeta.desc+'\n\n---\n\n## Fields\n\n';
+    md+='| # | Label | Type | Required | Hint | Options |\n|---|-------|------|----------|------|---------|\n';
+    fields.forEach(function(f,i){md+='| '+(i+1)+' | '+f.label+' | `'+f.type+'` | '+(f.required?'Yes':'No')+' | '+f.hint+' | '+(f.opts.join(', ')||'—')+' |\n'});
+    dl(name+'_spec.md',md,'text/markdown');
+  } else if(format==='pdf'){
+    var phtml='<!DOCTYPE html><html><head><title>'+formMeta.title+'</title><style>body{font-family:Arial,sans-serif;font-size:12pt;margin:40px}.field{margin-bottom:16px;page-break-inside:avoid}label{font-weight:bold;display:block;margin-bottom:4px}.hint{font-size:10pt;color:#666;margin-bottom:4px}.box{border:1px solid #333;min-height:28px;padding:4px 8px;border-radius:4px;margin-top:2px}h1{font-size:18pt}h2{font-size:13pt;border-bottom:1px solid #ccc;padding-bottom:4px;margin:16px 0 8px}</style></head><body>';
+    phtml+='<h1>'+formMeta.title+'</h1><p>'+formMeta.desc+'</p><hr>';
+    fields.forEach(function(f){
+      if(f.type==='heading'){phtml+='<h2>'+f.label+'</h2>';return;}
+      phtml+='<div class="field"><label>'+f.label+(f.required?' *':'')+'</label>';
+      if(f.hint)phtml+='<div class="hint">'+f.hint+'</div>';
+      if(['radio','checkbox'].indexOf(f.type)>-1){phtml+=f.opts.map(function(o){return '<div>☐ '+o+'</div>'}).join('');}
+      else if(f.type==='textarea'){phtml+='<div class="box" style="min-height:60px"></div>';}
+      else if(f.type==='signature'){phtml+='<div class="box" style="min-height:80px;font-size:10pt;color:#999;display:flex;align-items:center;padding:8px">Sign here</div>';}
+      else{phtml+='<div class="box"></div>';}
+      phtml+='</div>';
+    });
+    phtml+='</body></html>';
+    var win=window.open('','_blank');
+    win.document.write(phtml);win.document.close();win.focus();
+    setTimeout(function(){win.print();},400);
+    toast('PDF print dialog opened','ok');
+    return;
+  }
+  toast('Downloaded: '+name+' ('+format.toUpperCase()+')','ok');
+}
+
+function dl(filename,content,type){
+  var a=document.createElement('a');
+  a.href='data:'+type+';charset=utf-8,'+encodeURIComponent(content);
+  a.download=filename;a.click();
+}
+
+// ===== NEW FORM WIZARD =====
+function openNewForm(){nfStepNum=1;updNfModal();openModal('new-form-modal')}
+function selFT(t){selFTType=t;['web','powerapp','msforms','aem'].forEach(function(x){document.getElementById('ft-'+x).classList.toggle('sel',x===t)})}
+function selTmpl(t){selTmplType=t;['blank','access','onboard'].forEach(function(x){document.getElementById('tmpl-'+x).classList.toggle('sel',x===t)})}
+function nfStep(dir){
+  nfStepNum+=dir;
+  if(nfStepNum>3){
+    var n=document.getElementById('nf-name').value.trim()||'Untitled Form';
+    var d=document.getElementById('nf-desc').value.trim();
+    var typeMap={web:'Web Form',powerapp:'Power Apps',msforms:'Microsoft Forms',aem:'AEM Forms'};
+    FORMS.unshift({id:Date.now(),name:n,type:typeMap[selFTType]||'Web Form',icon:'📄',bg:'rgba(124,110,250,0.12)',subs:0,status:'draft'});
+    renderForms();
+    fields=selTmplType!=='blank'&&TEMPLATES[selTmplType]?JSON.parse(JSON.stringify(TEMPLATES[selTmplType])):[];
+    document.getElementById('form-title-inp').value=n;
+    document.getElementById('form-desc-inp').value=d||'';
+    document.getElementById('bldr-form-title').textContent=n;
+    formMeta={title:n,desc:d||''};
+    renderCanvas();
+    closeModal('new-form-modal');
+    nav('builder');
+    toast('Form "'+n+'" created!','ok');
+    return;
+  }
+  if(nfStepNum<1)nfStepNum=1;
+  updNfModal();
+}
+function updNfModal(){
+  [1,2,3].forEach(function(i){
+    document.getElementById('create-s'+i).style.display=i===nfStepNum?'block':'none';
+    document.getElementById('sp'+i).classList.toggle('done',i<=nfStepNum);
+  });
+  document.getElementById('step-label').textContent='Step '+nfStepNum+' of 3 — '+['Choose platform','Form details','Choose template'][nfStepNum-1];
+  document.getElementById('nf-back').style.display=nfStepNum>1?'inline-flex':'none';
+  document.getElementById('nf-next').textContent=nfStepNum===3?'Create Form →':'Next →';
+}
+
+// ===== INIT =====
+fields=JSON.parse(JSON.stringify(TEMPLATES.access));
+renderCanvas();
+renderDash();
+renderForms();
+renderSubs();
+renderNotifs();
+buildPalette();
+
+// Set builder page flex display on nav
+var origNav=nav;
+document.getElementById('pg-builder').style.display='none';
+
+// Responsive sidebar — auto-open on desktop
+if(window.innerWidth>768){document.getElementById('sidebar').classList.remove('collapsed')}
+
+window.addEventListener('resize',function(){
+  var sb=document.getElementById('sidebar');
+  if(window.innerWidth>768){sb.classList.remove('open');document.getElementById('sbOverlay').classList.remove('show')}
+});
+</script>
+</body>
+</html>
